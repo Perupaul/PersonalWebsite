@@ -1,0 +1,11 @@
+.centered-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.plan-list {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}

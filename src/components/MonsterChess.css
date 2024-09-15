@@ -1,0 +1,24 @@
+.board-div {
+  /* margin-left: auto;
+  margin-right: auto; */
+  max-width: 30em;
+  max-height: 30em;
+  flex-grow: 1;
+}
+
+.icon-button {
+  height: fit-content;
+  width: fit-content;
+}
+
+.monster-help {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1em;
+}
+
+#monster-title {
+  width: fit-content;
+}

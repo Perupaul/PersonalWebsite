@@ -1,0 +1,38 @@
+.main-box {
+  display: flex;
+  flex-direction: column;
+  padding-left: 5em;
+  padding-right: 5em;
+  min-height: 100%;
+  max-width: 55em;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgb(15, 15, 15);
+  overflow: scroll;
+  align-items: center;
+  /* color: white; */
+}
+
+.left-align {
+  text-align: left;
+}
+
+.link {
+  color: #b71c1c;
+}
+
+.link:hover {
+  color: #d43030;
+}
+
+.horizontal-flex {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.icon-button {
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+}
