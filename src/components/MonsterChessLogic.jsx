@@ -123,6 +123,28 @@ class Chess {
     return fen.join(" ");
   }
 
+  getWinner() {
+    let whiteKing = false;
+    let blackKing = false;
+    for (const row of this.board) {
+      for (const piece of row) {
+        if (piece === "K") {
+          whiteKing = true;
+        }
+        if (piece === "k") {
+          blackKing = true;
+        }
+      }
+    }
+    if (whiteKing && blackKing) {
+      return null;
+    } else if (whiteKing) {
+      return "w";
+    } else {
+      return "b";
+    }
+  }
+
   move(move) {
     let from = null;
     let to = null;
@@ -204,6 +226,25 @@ class Chess {
     this.board[to[0]][to[1]] = piece;
     this.board[from[0]][from[1]] = null;
 
+    // handle Castling
+    if (piece == "K" && from[0] === 7 && from[1] === 4) {
+      if (to[0] === 7 && to[1] === 6) {
+        this.board[7][5] = "R";
+        this.board[7][7] = null;
+      } else if (to[0] === 7 && to[1] === 2) {
+        this.board[7][3] = "R";
+        this.board[7][0] = null;
+      }
+    } else if (piece == "k" && from[0] === 0 && from[1] === 4) {
+      if (to[0] === 0 && to[1] === 6) {
+        this.board[0][5] = "r";
+        this.board[0][7] = null;
+      } else if (to[0] === 0 && to[1] === 2) {
+        this.board[0][3] = "r";
+        this.board[0][0] = null;
+      }
+    }
+
     // handle Castling Permissions
     if (piece === "K") {
       this.castling = this.castling.replace("K", "");
@@ -213,16 +254,16 @@ class Chess {
       this.castling = this.castling.replace("k", "");
       this.castling = this.castling.replace("q", "");
     }
-    if (from === "a1" || to === "a1") {
+    if (move.from === "a1" || move.to === "a1") {
       this.castling = this.castling.replace("Q", "");
     }
-    if (from === "h1" || to === "h1") {
+    if (move.from === "h1" || move.to === "h1") {
       this.castling = this.castling.replace("K", "");
     }
-    if (from === "a8" || to === "a8") {
+    if (move.from === "a8" || move.to === "a8") {
       this.castling = this.castling.replace("q", "");
     }
-    if (from === "h8" || to === "h8") {
+    if (move.from === "h8" || move.to === "h8") {
       this.castling = this.castling.replace("k", "");
     }
 
@@ -276,6 +317,25 @@ class Chess {
 
     this.board[from[0]][from[1]] = piece;
     this.board[to[0]][to[1]] = null; // Will get overwritten if a piece was taken.
+
+    // handle Castling
+    if (piece == "K" && from[0] === 7 && from[1] === 4) {
+      if (to[0] === 7 && to[1] === 6) {
+        this.board[7][5] = null;
+        this.board[7][7] = "R";
+      } else if (to[0] === 7 && to[1] === 2) {
+        this.board[7][3] = null;
+        this.board[7][0] = "R";
+      }
+    } else if (piece == "k" && from[0] === 0 && from[1] === 4) {
+      if (to[0] === 0 && to[1] === 6) {
+        this.board[0][5] = null;
+        this.board[0][7] = "r";
+      } else if (to[0] === 0 && to[1] === 2) {
+        this.board[0][3] = null;
+        this.board[0][0] = "r";
+      }
+    }
 
     let dead = lastMove.dead;
     let deadPosition = this.notationToIndex(dead.location);
