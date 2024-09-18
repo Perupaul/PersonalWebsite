@@ -16,6 +16,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import UndoIcon from "@mui/icons-material/Undo";
 import RedoIcon from "@mui/icons-material/Redo";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
+import SouthIcon from "@mui/icons-material/South";
 import Box from "@mui/material/Box";
 
 import { Chessboard } from "react-chessboard";
@@ -31,6 +32,20 @@ const endmid = "r1b1K2r/pppk3p/2p1p3/2P5/8/5P2/8/8 w  - 0 1111111111";
 const endend = "r1b4r/pppK3p/2p1p3/2P5/8/5P2/8/8 b  - 0 1111111111";
 
 function MonsterChess() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+    window.addEventListener("resize", handleWindowSizeChange);
+    return () => {
+      window.removeEventListener("resize", handleWindowSizeChange);
+    };
+  }, []);
+
+  const [isMobile, setIsMobile] = useState(width <= 768);
+
   let [openHelp, setOpenHelp] = useState(false);
   const toggleHelp = () => {
     setOpenHelp(!openHelp);
@@ -54,6 +69,7 @@ function MonsterChess() {
   }, [fen]);
 
   const onDrop = (source, target, piece) => {
+    if (chess.getWinner() !== null) return;
     const move = chess.move({
       from: source,
       to: target,
@@ -73,22 +89,8 @@ function MonsterChess() {
     setFen(chess.cleanFen());
   };
 
-  return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        // alignItems: "center",
-        minHeight: "100%",
-        maxWidth: "55em",
-        paddingLeft: "5em",
-        paddingRight: "5em",
-        marginLeft: "auto",
-        marginRight: "auto",
-        backgroundColor: "rgb(15, 15, 15)",
-        overflow: "scroll",
-      }}
-    >
+  const content = (
+    <div>
       <div className="horizontal-flex">
         <IconButton
           onClick={resetBoard}
@@ -140,62 +142,172 @@ function MonsterChess() {
         <div className="monster-help">
           <DialogTitle id="monster-title">Monster Chess?</DialogTitle>
           <DialogContent>
-            <DialogContentText>
+            <DialogContentText className="padding-top padding-bottom">
               Monster Chess is a variation of chess that one doesn't see very
               often, where white makes two moves in a row every time, while
               black only gets one. For example, a classic openning is e4, Ke2:
             </DialogContentText>
-            <div className="horizontal-flex">
-              <Chessboard
-                position={startClean}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-              <ArrowRightAltIcon fontSize="large" />
-              <Chessboard
-                position={e4}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-              <ArrowRightAltIcon fontSize="large" />
-              <Chessboard
-                position={Ke2}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-            </div>
+            {!isMobile ? (
+              <div className="horizontal-flex">
+                <Chessboard
+                  position={startClean}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <ArrowRightAltIcon fontSize="large" />
+                <Chessboard
+                  position={e4}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <ArrowRightAltIcon fontSize="large" />
+                <Chessboard
+                  position={Ke2}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+              </div>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Chessboard
+                  position={startClean}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <SouthIcon
+                  fontSize="large"
+                  sx={{ paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                />
+                <Chessboard
+                  position={e4}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <SouthIcon
+                  fontSize="large"
+                  sx={{ paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                />
+                <Chessboard
+                  position={Ke2}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+              </Box>
+            )}
 
-            <DialogContentText>
+            <DialogContentText className="padding-top">
               To make it somewhat fair white only gets four pawns.
             </DialogContentText>
-            <DialogContentText>
+            <DialogContentText className="padding-bottom">
               The objective is to take the other player's king, for instance
               white can win like this:
             </DialogContentText>
-            <div className="horizontal-flex">
-              <Chessboard
-                position={endstart}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-              <ArrowRightAltIcon fontSize="large" />
-              <Chessboard
-                position={endmid}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-              <ArrowRightAltIcon fontSize="large" />
-              <Chessboard
-                position={endend}
-                arePiecesDraggable={false}
-                areArrowsAllowed={false}
-              />
-            </div>
+            {!isMobile ? (
+              <div className="horizontal-flex">
+                <Chessboard
+                  position={endstart}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <ArrowRightAltIcon fontSize="large" />
+                <Chessboard
+                  position={endmid}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <ArrowRightAltIcon fontSize="large" />
+                <Chessboard
+                  position={endend}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+              </div>
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Chessboard
+                  position={endstart}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <SouthIcon
+                  fontSize="large"
+                  sx={{ paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                />
+                <Chessboard
+                  position={endmid}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+                <SouthIcon
+                  fontSize="large"
+                  sx={{ paddingTop: "0.5rem", paddingBottom: "0.5rem" }}
+                />
+                <Chessboard
+                  position={endend}
+                  arePiecesDraggable={false}
+                  areArrowsAllowed={false}
+                />
+              </Box>
+            )}
           </DialogContent>
         </div>
       </Dialog>
-    </Box>
+    </div>
   );
+
+  if (isMobile) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100%",
+          maxWidth: "55em",
+          paddingLeft: "1em",
+          paddingRight: "1em",
+          marginLeft: "auto",
+          marginRight: "auto",
+          backgroundColor: "rgb(15, 15, 15)",
+          overflow: "scroll",
+        }}
+      >
+        {content}
+      </Box>
+    );
+  } else {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          minHeight: "100%",
+          maxWidth: "55em",
+          paddingLeft: "5em",
+          paddingRight: "5em",
+          marginLeft: "auto",
+          marginRight: "auto",
+          backgroundColor: "rgb(15, 15, 15)",
+          overflow: "scroll",
+        }}
+      >
+        {content}
+      </Box>
+    );
+  }
 }
 
 export default MonsterChess;

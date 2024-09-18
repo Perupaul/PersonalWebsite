@@ -10,11 +10,40 @@
   background-color: rgb(15, 15, 15);
   overflow: scroll;
   align-items: center;
-  /* color: white; */
+}
+
+.main-box-mobile {
+  display: flex;
+  flex-direction: column;
+  padding-left: 1em;
+  padding-right: 1em;
+  min-height: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: rgb(15, 15, 15);
+  overflow-y: scroll;
+  overflow-x: hidden;
+  align-items: center;
 }
 
 .left-align {
   text-align: left;
+}
+
+.padding-right {
+  padding-right: 1em;
+}
+
+.padding-left {
+  padding-left: 1em;
+}
+
+.padding-bottom {
+  padding-bottom: 1em;
+}
+
+.padding-top {
+  padding-top: 1em;
 }
 
 .link {

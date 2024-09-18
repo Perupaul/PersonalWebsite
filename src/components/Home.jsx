@@ -5,6 +5,20 @@ import "./Home.css";
 import "./shared.css";
 
 function Home() {
+  const [width, setWidth] = useState(window.innerWidth);
+
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+    window.addEventListener("resize", handleWindowSizeChange);
+    return () => {
+      window.removeEventListener("resize", handleWindowSizeChange);
+    };
+  }, []);
+
+  const [isMobile, setIsMobile] = useState(width <= 768);
+
   let [worldDominationCounter, setWorldDominationCounter] = useState(0);
   let [wakeUpCounter, setWakeUpCounter] = useState(0);
   let [worldDomination, setWorldDomination] = useState(false);
@@ -102,8 +116,8 @@ function Home() {
     );
   }, []);
 
-  return (
-    <div className="main-box">
+  const content = (
+    <div>
       <h1>You seem to have found my website</h1>
       <p>That's good!</p>
       <p>You can help with my plans to take over the world</p>
@@ -128,6 +142,12 @@ function Home() {
       <p>{message}</p>
     </div>
   );
+  if (isMobile) {
+    return <div className="main-box-mobile">{content}</div>;
+  } else {
+    // not mobile
+    return <div className="main-box">{content}</div>;
+  }
 }
 
 export default Home;
