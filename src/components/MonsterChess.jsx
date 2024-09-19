@@ -18,6 +18,8 @@ import RedoIcon from "@mui/icons-material/Redo";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import SouthIcon from "@mui/icons-material/South";
 import Box from "@mui/material/Box";
+import WhiteWinnerKing from "../assets/WhiteWinnerKing.png";
+import BlackWinnerKing from "../assets/BlackWinnerKing.png";
 
 import { Chessboard } from "react-chessboard";
 
@@ -46,6 +48,38 @@ function MonsterChess() {
 
   const [isMobile, setIsMobile] = useState(width <= 768);
 
+  const [winner, setWinner] = useState(null);
+
+  const [winCustomPieces, setWinCustomPieces] = useState({});
+
+  useEffect(() => {
+    const pieceComponents = {};
+    if (winner === "w") {
+      pieceComponents["wK"] = ({ squareWidth }) => (
+        <div
+          style={{
+            width: squareWidth,
+            height: squareWidth,
+            backgroundImage: `url(${WhiteWinnerKing})`,
+            backgroundSize: "100%",
+          }}
+        />
+      );
+    } else if (winner === "b") {
+      pieceComponents["bK"] = ({ squareWidth }) => (
+        <div
+          style={{
+            width: squareWidth,
+            height: squareWidth,
+            backgroundImage: `url(${BlackWinnerKing})`,
+            backgroundSize: "100%",
+          }}
+        />
+      );
+    }
+    setWinCustomPieces(pieceComponents);
+  }, [winner]);
+
   let [openHelp, setOpenHelp] = useState(false);
   const toggleHelp = () => {
     setOpenHelp(!openHelp);
@@ -53,7 +87,7 @@ function MonsterChess() {
   const resetBoard = () => {
     setChess(new Chess(startPosition));
   };
-  // const chess = useMemo(() => new Chess(), []);
+
   const [chess, setChess] = useState(new Chess(startPosition));
   const [fen, setFen] = useState(chess.cleanFen());
   const [undoable, setUndoable] = useState(false);
@@ -66,10 +100,11 @@ function MonsterChess() {
   useEffect(() => {
     setUndoable(chess.pastMoves.length > 0);
     setRedoable(chess.undoneMoves.length > 0);
+    setWinner(chess.getWinner());
   }, [fen]);
 
   const onDrop = (source, target, piece) => {
-    if (chess.getWinner() !== null) return;
+    if (winner !== null) return; // the game is over, shouldn't matter cuz the board is not draggable
     const move = chess.move({
       from: source,
       to: target,
@@ -111,7 +146,17 @@ function MonsterChess() {
 
       <div className="horizontal-flex">
         <div className="board-div">
-          <Chessboard position={fen} onPieceDrop={onDrop} id="chessBoard" />
+          {winner === null ? (
+            <Chessboard position={fen} onPieceDrop={onDrop} id="chessBoard" />
+          ) : (
+            <Chessboard
+              position={fen}
+              customPieces={winCustomPieces}
+              arePiecesDraggable={false}
+              areArrowsAllowed={false}
+              id="chessboard"
+            />
+          )}
         </div>
       </div>
 
