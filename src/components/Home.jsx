@@ -46,7 +46,7 @@ function Home() {
           );
         } else if (worldDominationCounter === 9) {
           setMessage("Maybe I'll just take a nap");
-        } else if (worldDominationCounter === 11) {
+        } else if (worldDominationCounter >= 11) {
           setMessage("zzzzz");
         }
       } else {
