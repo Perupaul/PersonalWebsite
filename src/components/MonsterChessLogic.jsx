@@ -371,7 +371,7 @@ class Chess {
   }
 
   redo() {
-    let pastUndo = this.undoneMoves.pop();
+    let pastUndo = this.undoneMoves[this.undoneMoves.length - 1];
     this.move(pastUndo);
   }
 
