@@ -51,8 +51,8 @@ class Chess {
     } else if (this.turn === "b") {
       this.whiteEnPassant = [this.notationToIndex(fen.split(" ")[3]), null];
     }
-    this.halfMove = fen.split(" ")[4];
-    this.fullMove = fen.split(" ")[5];
+    this.halfMove = parseInt(fen.split(" ")[4]);
+    this.fullMove = parseInt(fen.split(" ")[5]);
   }
 
   ascii() {
@@ -222,6 +222,18 @@ class Chess {
       castling: this.castling,
     });
 
+    const previousUndoneMove = this.undoneMoves.pop();
+    if (
+      previousUndoneMove === undefined ||
+      !(
+        move.from === previousUndoneMove.from &&
+        move.to === previousUndoneMove.to &&
+        move.promotion === previousUndoneMove.promotion
+      )
+    ) {
+      this.undoneMoves = [];
+    }
+
     // Actually Move
     this.board[to[0]][to[1]] = piece;
     this.board[from[0]][from[1]] = null;
@@ -295,9 +307,11 @@ class Chess {
     if (this.turn === "w2") {
       this.turn = "w";
     } else if (this.turn === "w") {
+      this.halfMove += 1;
       this.turn = "b";
     } else if (this.turn === "b") {
       this.turn = "w2";
+      this.halfMove += 1;
       this.fullMove += 1;
     }
     return true;
@@ -343,10 +357,12 @@ class Chess {
 
     if (this.turn === "w2") {
       this.turn = "b";
+      this.halfMove -= 1;
       this.fullMove -= 1;
     } else if (this.turn === "w") {
       this.turn = "w2";
     } else if (this.turn === "b") {
+      this.halfMove -= 1;
       this.turn = "w";
     }
     this.blackEnPassant = lastMove.blackEnPassant;
@@ -790,10 +806,33 @@ class Chess {
 
   moves() {
     if (this.turn === "w" || this.turn === "w2") {
-      return this.generateWhiteMoves(2);
+      return this.generateWhiteMoves();
     } else {
       return this.generateBlackMoves();
     }
+  }
+
+  children() {
+    // A lot like moves, but returns the fen of all the possible ways of changing players, i.e. do both white moves.
+    let children = new Set();
+    for (const move of this.moves()) {
+      const newBoard = new Chess(this.fen());
+      newBoard.move(move);
+      if (this.turn === "w2") {
+        for (const move2 of newBoard.moves()) {
+          const newBoard2 = new Chess(newBoard.fen());
+          newBoard2.move(move2);
+          children.add(newBoard2.fen());
+        }
+      } else if (this.turn === "b") {
+        children.add(newBoard.fen());
+      } else {
+        throw new Error(
+          `Children only available on w2 or b turns, not ${this.turn}`
+        );
+      }
+    }
+    return children;
   }
 }
 
