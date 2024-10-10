@@ -92,6 +92,10 @@ function MonsterChess() {
   const [fen, setFen] = useState(chess.cleanFen());
   const [undoable, setUndoable] = useState(false);
   const [redoable, setRedoable] = useState(false);
+  const [moveFrom, setMoveFrom] = useState(null);
+  const [moveTo, setMoveTo] = useState(null);
+  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
+  const [optionSquares, setOptionSquares] = useState({});
 
   useEffect(() => {
     setFen(chess.cleanFen());
@@ -110,18 +114,113 @@ function MonsterChess() {
       to: target,
       promotion: piece[1],
     });
-    if (move === false) return;
+    if (move === false) {
+      setMoveFrom(source);
+      setOptionBackgrounds(source);
+      return;
+    }
+    setOptionSquares({});
+    setMoveFrom(null);
     setFen(chess.cleanFen());
+  };
+
+  const setOptionBackgrounds = (square) => {
+    const moves = chess.movesFromSquare(square);
+    if (moves.length === 0) {
+      setOptionSquares({});
+      return false;
+    }
+    const newSquares = {};
+    moves.map((move) => {
+      newSquares[move.to] = {
+        background:
+          chess.get(move.to) &&
+          chess.get(move.to).color !== chess.get(square).color
+            ? "radial-gradient(circle, rgba(0,0,0,.1) 85%, transparent 85%)"
+            : "radial-gradient(circle, rgba(0,0,0,.1) 25%, transparent 25%)",
+        borderRadius: "50%",
+      };
+      return move;
+    });
+    newSquares[square] = {
+      background: "rgba(255, 255, 0, 0.4)",
+    };
+    setOptionSquares(newSquares);
+    return true;
+  };
+
+  const onSquareClick = (square, piece) => {
+    if (winner !== null) return;
+    if (moveFrom === null) {
+      setOptionBackgrounds(square);
+      setMoveFrom(square);
+    } else {
+      if (moveFrom === square) {
+        setOptionSquares({});
+        setMoveFrom(null);
+        return;
+      }
+      let moves = chess.movesFromSquare(moveFrom);
+      let move = moves.find((move) => move.to === square);
+      if (!move) {
+        setOptionBackgrounds(square);
+        setMoveFrom(square);
+        return;
+      }
+      if (
+        chess.get(moveFrom).piece.toLowerCase() === "p" &&
+        (move.to[1] === "1" || move.to[1] === "8")
+      ) {
+        setMoveTo(square);
+        setShowPromotionDialog(true);
+        return;
+      }
+
+      move = chess.move({
+        from: moveFrom,
+        to: square,
+        promotion: chess.get(moveFrom).piece,
+      });
+      if (move !== false) {
+        setFen(chess.cleanFen());
+        setMoveFrom(null);
+        setOptionSquares({});
+      } else {
+        setOptionBackgrounds(square);
+        setMoveFrom(square);
+      }
+    }
+  };
+
+  const onPromotionPieceSelect = (piece) => {
+    if (piece) {
+      const move = chess.move({
+        from: moveFrom,
+        to: moveTo,
+        promotion: piece[1],
+      });
+      if (move !== false) {
+        setFen(chess.cleanFen());
+      }
+    }
+    setMoveFrom(null);
+    setMoveTo(null);
+    setOptionSquares({});
+    setShowPromotionDialog(false);
   };
 
   const onUndo = () => {
     chess.undo();
     setFen(chess.cleanFen());
+    setOptionSquares({});
+    setMoveFrom(null);
   };
 
   const onRedo = () => {
     chess.redo();
     setFen(chess.cleanFen());
+    setOptionSquares({});
+    setMoveFrom(null);
   };
 
   const content = (
@@ -147,7 +246,18 @@ function MonsterChess() {
       <div className="horizontal-flex">
         <div className="board-div">
           {winner === null ? (
-            <Chessboard position={fen} onPieceDrop={onDrop} id="chessBoard" />
+            <Chessboard
+              position={fen}
+              onPieceDrop={onDrop}
+              id="chessBoard"
+              onSquareClick={onSquareClick}
+              customSquareStyles={{
+                ...optionSquares,
+              }}
+              showPromotionDialog={showPromotionDialog}
+              promotionToSquare={moveTo}
+              onPromotionPieceSelect={onPromotionPieceSelect}
+            />
           ) : (
             <Chessboard
               position={fen}
