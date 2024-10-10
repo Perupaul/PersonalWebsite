@@ -192,6 +192,22 @@ function MonsterChess() {
     }
   };
 
+  const promotionCheck = (source, target, piece) => {
+    setMoveFrom(source);
+    setMoveTo(target);
+    if (
+      chess.get(source) &&
+      chess.get(source).piece.toLowerCase() === "p" &&
+      (target[1] === "1" || target[1] === "8")
+    ) {
+      setShowPromotionDialog(true);
+      return true;
+    } else {
+      setShowPromotionDialog(false);
+      return false;
+    }
+  };
+
   const onPromotionPieceSelect = (piece) => {
     if (piece) {
       const move = chess.move({
@@ -255,6 +271,7 @@ function MonsterChess() {
                 ...optionSquares,
               }}
               showPromotionDialog={showPromotionDialog}
+              onPromotionCheck={promotionCheck}
               promotionToSquare={moveTo}
               onPromotionPieceSelect={onPromotionPieceSelect}
             />
