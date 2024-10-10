@@ -375,6 +375,19 @@ class Chess {
     this.move(pastUndo);
   }
 
+  get(square) {
+    const [i, j] = this.notationToIndex(square);
+    if (this.board[i][j] === null) {
+      return null;
+    } else {
+      return {
+        piece: this.board[i][j],
+        location: square,
+        color: WhitePieces.includes(this.board[i][j]) ? "w" : "b",
+      };
+    }
+  }
+
   getKingMoves(i, j, enemyPieces) {
     let result = [];
     let possibleMoves = [
@@ -599,103 +612,211 @@ class Chess {
     return result;
   }
 
-  generateWhiteMoves() {
+  generateWhiteMovesFromSquare(i, j) {
     let moves = [];
-    for (let i = 0; i < this.board.length; i++) {
-      for (let j = 0; j < this.board[i].length; j++) {
-        // Pawns
-        if (this.board[i][j] === "P") {
-          if (this.board[i - 1][j] === null) {
-            if (i - 1 === 0) {
+
+    // Pawns
+    if (this.board[i][j] === "P") {
+      if (this.board[i - 1][j] === null) {
+        if (i - 1 === 0) {
+          for (const promotion of ["Q", "R", "N", "B"]) {
+            moves.push({
+              from: this.indexToNotation([i, j]),
+              to: this.indexToNotation([i - 1, j]),
+              notation: `${this.indexToNotation([i - 1, j])}=${promotion}`,
+              promotion: promotion,
+            });
+          }
+        } else {
+          moves.push({
+            from: this.indexToNotation([i, j]),
+            to: this.indexToNotation([i - 1, j]),
+            notation: this.indexToNotation([i - 1, j]),
+          });
+        }
+        if (i === 6 && this.board[i - 2][j] === null) {
+          // can move two spaces
+          moves.push({
+            from: this.indexToNotation([i, j]),
+            to: this.indexToNotation([i - 2, j]),
+            notation: this.indexToNotation([i - 2, j]),
+          });
+        }
+      }
+      let possibleAttacks = [
+        [i - 1, j - 1],
+        [i - 1, j + 1],
+      ];
+      for (const [newI, newJ] of possibleAttacks) {
+        // should be unnecessary
+        if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
+          if (
+            BlackPieces.includes(this.board[newI][newJ]) ||
+            (this.blackEnPassant !== null &&
+              this.blackEnPassant[0] === newI &&
+              this.blackEnPassant[1] == newJ)
+          ) {
+            if (newI === 0) {
               for (const promotion of ["Q", "R", "N", "B"]) {
                 moves.push({
                   from: this.indexToNotation([i, j]),
-                  to: this.indexToNotation([i - 1, j]),
-                  notation: `${this.indexToNotation([i - 1, j])}=${promotion}`,
+                  to: this.indexToNotation([newI, newJ]),
+                  notation: `${numberMap.get(j)}x${this.indexToNotation([
+                    newI,
+                    newJ,
+                  ])}=${promotion}`,
                   promotion: promotion,
                 });
               }
             } else {
               moves.push({
                 from: this.indexToNotation([i, j]),
-                to: this.indexToNotation([i - 1, j]),
-                notation: this.indexToNotation([i - 1, j]),
-              });
-            }
-            if (i === 6 && this.board[i - 2][j] === null) {
-              // can move two spaces
-              moves.push({
-                from: this.indexToNotation([i, j]),
-                to: this.indexToNotation([i - 2, j]),
-                notation: this.indexToNotation([i - 2, j]),
+                to: this.indexToNotation([newI, newJ]),
+                notation: `${numberMap.get(j)}x${this.indexToNotation([
+                  newI,
+                  newJ,
+                ])}`,
               });
             }
           }
-          let possibleAttacks = [
-            [i - 1, j - 1],
-            [i - 1, j + 1],
-          ];
-          for (const [newI, newJ] of possibleAttacks) {
-            // should be unnecessary
-            if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
-              if (
-                BlackPieces.includes(this.board[newI][newJ]) ||
-                (this.blackEnPassant !== null &&
-                  this.blackEnPassant[0] === newI &&
-                  this.blackEnPassant[1] == newJ)
-              ) {
-                if (newI === 0) {
-                  for (const promotion of ["Q", "R", "N", "B"]) {
-                    moves.push({
-                      from: this.indexToNotation([i, j]),
-                      to: this.indexToNotation([newI, newJ]),
-                      notation: `${numberMap.get(j)}x${this.indexToNotation([
-                        newI,
-                        newJ,
-                      ])}=${promotion}`,
-                      promotion: promotion,
-                    });
-                  }
-                } else {
-                  moves.push({
-                    from: this.indexToNotation([i, j]),
-                    to: this.indexToNotation([newI, newJ]),
-                    notation: `${numberMap.get(j)}x${this.indexToNotation([
-                      newI,
-                      newJ,
-                    ])}`,
-                  });
-                }
-              }
-            }
-          }
-        }
-
-        // Kings
-        if (this.board[i][j] === "K") {
-          moves.push(...this.getKingMoves(i, j, BlackPieces));
-        }
-
-        // Rooks
-        if (this.board[i][j] === "R") {
-          moves.push(...this.getRookMoves(i, j, BlackPieces));
-        }
-
-        // Knights
-        if (this.board[i][j] === "N") {
-          moves.push(...this.getKnightMoves(i, j, BlackPieces));
-        }
-
-        // Bishops
-        if (this.board[i][j] === "B") {
-          moves.push(...this.getBishopMoves(i, j, BlackPieces));
-        }
-
-        // Queens
-        if (this.board[i][j] === "Q") {
-          moves.push(...this.getQueenMoves(i, j, BlackPieces));
         }
       }
+    }
+
+    // Kings
+    if (this.board[i][j] === "K") {
+      moves.push(...this.getKingMoves(i, j, BlackPieces));
+    }
+
+    // Rooks
+    if (this.board[i][j] === "R") {
+      moves.push(...this.getRookMoves(i, j, BlackPieces));
+    }
+
+    // Knights
+    if (this.board[i][j] === "N") {
+      moves.push(...this.getKnightMoves(i, j, BlackPieces));
+    }
+
+    // Bishops
+    if (this.board[i][j] === "B") {
+      moves.push(...this.getBishopMoves(i, j, BlackPieces));
+    }
+
+    // Queens
+    if (this.board[i][j] === "Q") {
+      moves.push(...this.getQueenMoves(i, j, BlackPieces));
+    }
+
+    return moves;
+  }
+
+  generateWhiteMoves() {
+    let moves = [];
+    for (let i = 0; i < this.board.length; i++) {
+      for (let j = 0; j < this.board[i].length; j++) {
+        moves = [...moves, ...this.generateWhiteMovesFromSquare(i, j)];
+      }
+    }
+    return moves;
+  }
+
+  generateBlackMovesFromSquare(i, j) {
+    let moves = [];
+    // Pawns
+    if (this.board[i][j] === "p") {
+      if (this.board[i + 1][j] === null) {
+        if (i + 1 === 7) {
+          for (const promotion of ["q", "r", "n", "b"]) {
+            moves.push({
+              from: this.indexToNotation([i, j]),
+              to: this.indexToNotation([i + 1, j]),
+              notation: this.indexToNotation([i + 1, j]),
+              promotion: promotion,
+            });
+          }
+        } else {
+          moves.push({
+            from: this.indexToNotation([i, j]),
+            to: this.indexToNotation([i + 1, j]),
+            notation: this.indexToNotation([i + 1, j]),
+          });
+        }
+        if (i === 1 && this.board[i + 2][j] === null) {
+          // can move two spaces
+          moves.push({
+            from: this.indexToNotation([i, j]),
+            to: this.indexToNotation([i + 2, j]),
+            notation: this.indexToNotation([i + 2, j]),
+          });
+        }
+      }
+      let possibleAttacks = [
+        [i + 1, j - 1],
+        [i + 1, j + 1],
+      ];
+      for (const [newI, newJ] of possibleAttacks) {
+        // should be unnecessary
+        if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
+          if (
+            WhitePieces.includes(this.board[newI][newJ]) ||
+            (this.whiteEnPassant[0] !== null &&
+              this.whiteEnPassant[0][0] === newI &&
+              this.whiteEnPassant[0][1] == newJ) ||
+            (this.whiteEnPassant[1] !== null &&
+              this.whiteEnPassant[1][0] === newI &&
+              this.whiteEnPassant[1][1] == newJ)
+          ) {
+            if (newI === 7) {
+              for (const promotion of ["q", "r", "n", "b"]) {
+                moves.push({
+                  from: this.indexToNotation([i, j]),
+                  to: this.indexToNotation([newI, newJ]),
+                  notation: `${numberMap.get(j)}x${this.indexToNotation([
+                    newI,
+                    newJ,
+                  ])}=${promotion}`,
+                  promotion: promotion,
+                });
+              }
+            } else {
+              moves.push({
+                from: this.indexToNotation([i, j]),
+                to: this.indexToNotation([newI, newJ]),
+                notation: `${numberMap.get(j)}x${this.indexToNotation([
+                  newI,
+                  newJ,
+                ])}`,
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Kings
+    if (this.board[i][j] === "k") {
+      moves.push(...this.getKingMoves(i, j, WhitePieces));
+    }
+
+    // Rooks
+    if (this.board[i][j] === "r") {
+      moves.push(...this.getRookMoves(i, j, WhitePieces));
+    }
+
+    // Knights
+    if (this.board[i][j] === "n") {
+      moves.push(...this.getKnightMoves(i, j, WhitePieces));
+    }
+
+    // Bishops
+    if (this.board[i][j] === "b") {
+      moves.push(...this.getBishopMoves(i, j, WhitePieces));
+    }
+
+    // Queens
+    if (this.board[i][j] === "q") {
+      moves.push(...this.getQueenMoves(i, j, WhitePieces));
     }
     return moves;
   }
@@ -704,101 +825,7 @@ class Chess {
     let moves = [];
     for (let i = 0; i < this.board.length; i++) {
       for (let j = 0; j < this.board[i].length; j++) {
-        // Pawns
-        if (this.board[i][j] === "p") {
-          if (this.board[i + 1][j] === null) {
-            if (i + 1 === 7) {
-              for (const promotion of ["q", "r", "n", "b"]) {
-                moves.push({
-                  from: this.indexToNotation([i, j]),
-                  to: this.indexToNotation([i + 1, j]),
-                  notation: this.indexToNotation([i + 1, j]),
-                  promotion: promotion,
-                });
-              }
-            } else {
-              moves.push({
-                from: this.indexToNotation([i, j]),
-                to: this.indexToNotation([i + 1, j]),
-                notation: this.indexToNotation([i + 1, j]),
-              });
-            }
-            if (i === 1 && this.board[i + 2][j] === null) {
-              // can move two spaces
-              moves.push({
-                from: this.indexToNotation([i, j]),
-                to: this.indexToNotation([i + 2, j]),
-                notation: this.indexToNotation([i + 2, j]),
-              });
-            }
-          }
-          let possibleAttacks = [
-            [i + 1, j - 1],
-            [i + 1, j + 1],
-          ];
-          for (const [newI, newJ] of possibleAttacks) {
-            // should be unnecessary
-            if (newI >= 0 && newI < 8 && newJ >= 0 && newJ < 8) {
-              if (
-                WhitePieces.includes(this.board[newI][newJ]) ||
-                (this.whiteEnPassant[0] !== null &&
-                  this.whiteEnPassant[0][0] === newI &&
-                  this.whiteEnPassant[0][1] == newJ) ||
-                (this.whiteEnPassant[1] !== null &&
-                  this.whiteEnPassant[1][0] === newI &&
-                  this.whiteEnPassant[1][1] == newJ)
-              ) {
-                if (newI === 7) {
-                  for (const promotion of ["q", "r", "n", "b"]) {
-                    moves.push({
-                      from: this.indexToNotation([i, j]),
-                      to: this.indexToNotation([newI, newJ]),
-                      notation: `${numberMap.get(j)}x${this.indexToNotation([
-                        newI,
-                        newJ,
-                      ])}=${promotion}`,
-                      promotion: promotion,
-                    });
-                  }
-                } else {
-                  moves.push({
-                    from: this.indexToNotation([i, j]),
-                    to: this.indexToNotation([newI, newJ]),
-                    notation: `${numberMap.get(j)}x${this.indexToNotation([
-                      newI,
-                      newJ,
-                    ])}`,
-                  });
-                }
-              }
-            }
-          }
-        }
-
-        // Kings
-        if (this.board[i][j] === "k") {
-          moves.push(...this.getKingMoves(i, j, WhitePieces));
-        }
-
-        // Rooks
-        if (this.board[i][j] === "r") {
-          moves.push(...this.getRookMoves(i, j, WhitePieces));
-        }
-
-        // Knights
-        if (this.board[i][j] === "n") {
-          moves.push(...this.getKnightMoves(i, j, WhitePieces));
-        }
-
-        // Bishops
-        if (this.board[i][j] === "b") {
-          moves.push(...this.getBishopMoves(i, j, WhitePieces));
-        }
-
-        // Queens
-        if (this.board[i][j] === "q") {
-          moves.push(...this.getQueenMoves(i, j, WhitePieces));
-        }
+        moves = [...moves, ...this.generateBlackMovesFromSquare(i, j)];
       }
     }
     return moves;
@@ -809,6 +836,15 @@ class Chess {
       return this.generateWhiteMoves();
     } else {
       return this.generateBlackMoves();
+    }
+  }
+
+  movesFromSquare(square) {
+    const [i, j] = this.notationToIndex(square);
+    if (this.turn === "w" || this.turn === "w2") {
+      return this.generateWhiteMovesFromSquare(i, j);
+    } else {
+      return this.generateBlackMovesFromSquare(i, j);
     }
   }
 
